@@ -17,15 +17,7 @@ ui.layout(
             </horizontal>
 
           </vertical>
-          <vertical margin="8">
-            <text textSize="14sp" margin="0 0 0 4">运行或停止脚本</text>
-            <horizontal margin="6 15">
-              <button id="start" text="启动脚本" layout_weight="1" />
-              <button id="stop" text="停止脚本" layout_weight="1" />
-              {/* <button id="save" text="保存设置" layout_weight="1" /> */}
-            </horizontal>
 
-          </vertical>
 
 
           <vertical margin="8 20 0 0">
@@ -41,10 +33,10 @@ ui.layout(
           </vertical>
 
           <horizontal margin="6 15">
-            <button id="update" text="更新脚本" layout_weight="1" />
-            {/* <button id="save" text="保存设置" layout_weight="1" /> */}
+            <button id="update" text="初次启动需要下载脚本" layout_weight="1" />
+          
           </horizontal>
-          {/* <text id="updateText" text="" textColor="#999999" textSize="12sp" gravity="center" visibility="gone" /> */}
+        
         </vertical>
       </ScrollView>
       <ScrollView>
@@ -73,46 +65,11 @@ ui.layout(
 
 
 );
-let isScriptRunning = false;
 
 const STORAGES_GITXUZAN = storages.create("gitxuzan_storage");
 // STORAGES_GITXUZAN.clear();
 
-ui.start.on("click", function () {
-  // 检查脚本是否已经运行
-  if (isScriptRunning) {
-    toast("脚本已经在运行");
-    log("尝试启动脚本，但脚本已经在运行");
-  } else {
-    isScriptRunning = true;
-    xiancheng = threads.start(function () {
 
-      toast("启动脚本");
-      log("启动脚本");
-      Run();
-    });
-  }
-});
-
-ui.stop.on("click", function () {
-  if (!isScriptRunning) {
-    toast("脚本没有运行");
-    log("尝试停止脚本，但脚本没有运行");
-  } else {
-
-    isScriptRunning = false;
-
-    // if(xiancheng != null && xiancheng.isAlive()){
-    //    xiancheng.interrupt();
-    //    xiancheng = null;
-    threads.shutDownAll()
-
-    // }
-    toast("停止脚本");
-    log("停止脚本");
-
-  }
-});
 
 
 ui.console_open.on("click", function () {
