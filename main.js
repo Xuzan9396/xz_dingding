@@ -365,7 +365,7 @@ var chain = {
 function Run() {
 
   if (STORAGES_GITXUZAN.get("console_open", true)) {
-    console.hide(); // yincang
+    console.hide(); // yincang1
     sleep(1000);
     ConsoleOpen();
   }
