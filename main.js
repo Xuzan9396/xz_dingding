@@ -82,13 +82,13 @@ ui.start.on("click", function () {
   // 检查脚本是否已经运行
   if (isScriptRunning) {
     toast("脚本已经在运行");
-    log("尝试启动脚本，但脚本已经在运行");
+    console.log("尝试启动脚本，但脚本已经在运行");
   } else {
     isScriptRunning = true;
     xiancheng = threads.start(function () {
 
       toast("启动脚本");
-      log("启动脚本");
+      console.log("启动脚本");
       Run();
     });
   }
@@ -207,7 +207,7 @@ ui.update.on("click", function () {
     // https://ghproxy.com/https://github.com/Xuzan9396/xz_dingding/releases/download/v0.0.1/xz_dingding_v0.0.1.zip
     let fileResp = http.get(`https://ghproxy.com/https://github.com/Xuzan9396/xz_dingding/releases/download/${newTagName}/${fileName}`);
     if (fileResp.statusCode != 200) {
-      log(`下载${fileName}失败: ` + fileResp.statusCode + " " + fileResp.statusMessage);
+      console(`下载${fileName}失败: ` + fileResp.statusCode + " " + fileResp.statusMessage);
       beforeReturn();
       return;
     }
@@ -256,7 +256,7 @@ var {
 
 } = require('./utils.js');
 const [width, height] = getDisplaySize();
-console.log("屏幕宽高", width, height)
+// console.log("屏幕宽高", width, height)
 
 
 
@@ -363,10 +363,14 @@ var chain = {
 
 
 function Run() {
+
   if (STORAGES_GITXUZAN.get("console_open", true)) {
+    console.hide(); // yincang
+    sleep(1000);
     ConsoleOpen();
   }
   if (chain.init_num == 1) {
+ 
     chain.init_num = 2;
     Init();
   }
