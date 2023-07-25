@@ -437,6 +437,8 @@ function getTaskList() {
     let [eles, x, y] = getSwipeElementv2(obj);
     if (!eles) {
       return;
+    }else if(eles === 3){
+      continue;
     }
     console.log(`真正开始任务:${obj.title}x,y`, x, y);
     click(x, y);
@@ -764,7 +766,7 @@ function getSwipeElementv2(obj) {
     console.log("标题", obj.title);
     if (!chain.getClickNum(obj.title)) {
       console.log("已经超过3次了，跳过");
-      return [null, null, null];
+      return [3, null, null];
     }
   } catch (e) {
     console.log("元素变化了，没找到请及时更新代码");
