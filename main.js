@@ -438,7 +438,7 @@ function getTaskList() {
     if (!eles) {
       return;
     }else if(eles === 3){
-      continue;
+      continue
     }
     console.log(`真正开始任务:${obj.title}x,y`, x, y);
     click(x, y);
@@ -650,8 +650,11 @@ function processElements(taskTitle) {
           case 1:
             // 点击视频
             WatchVideo(obj, targetX, targetY);
-
-            break;
+            
+            // 改成刷新列表方式
+            processElements(taskTitle);
+            return;
+            // break;
           case 2:
 
             // 点击考试
@@ -669,7 +672,7 @@ function processElements(taskTitle) {
             DoExercises(obj);
             sleep(2000);
 
-            processElements();
+            processElements(taskTitle);
             return;
         }
 
@@ -862,7 +865,6 @@ function DoExercises(obj) {
   }
 
   if (res.text() == "重新测验") {
-
     click("回顾答题");
     sleep(4000)
     let ele = text("正确答案:").find().map((item, index) => {
@@ -873,8 +875,16 @@ function DoExercises(obj) {
         itme: item,
       };
     })
+    // 找到正确答案回到上一级答题
     BackOut();
     sleep(2000);
+    if (ele.length <= 0) {
+      console.log("未找到答案");
+      BackOut();
+      sleep(2000);
+      return;
+    }
+    // 找到的情况
     if (ele.length > 0) {
       click("重新测验");
 
@@ -949,6 +959,7 @@ function DoExercises(obj) {
 
     return;
   }
+  // 上面是重新测验情况
   console.log("点击考试:", res.text(), res.bounds().centerX(), res.bounds().centerY());
   if (clickB(res)) {
     sleep(2000);
