@@ -377,8 +377,14 @@ function Run() {
 
   console.log("开始运行");
 
+  // var packageName = "com.alibaba.android.rimet";
+  // console.log("打开 " + packageName)
+  // app.launch(packageName);
+  // DoExercisesV2("考试");
+  // // getTaskList();
+  // return 
 
-  console.log("初始化完成");
+
   if (STORAGES_GITXUZAN.get("kill_app_dingding", true)) {
     closeApp("钉钉");
   }
@@ -413,18 +419,19 @@ function Run() {
 }
 
 function getTaskList() {
+  // className("android.view.View").text("排序").waitFor();
   className("android.view.View").text("进行中").waitFor();
   sleep(4000);
   // 等待"任务类型：学习计划"出现
-  var existsBool = className("android.view.View").text("任务类型：学习计划").findOne(3000);
+  var existsBool = className("android.view.View").textMatches("任务类型：(学习计划|考试)").findOne(3000);
   sleep(1000);
 
   if (existsBool == null) {
-    console.log("没有找到任务类型：学习计划");
+    console.log("没有找到任务类型：学习计划|考试");
     return;
   }
 
-  var elements = className("android.view.View").text("任务类型：学习计划").find();
+  var elements = className("android.view.View").textMatches("任务类型：(学习计划|考试)").find();
   sleep(1000);
   for (let i = 0; i < elements.length; i++) {
     // gxz 改
@@ -445,11 +452,11 @@ function getTaskList() {
     sleep(4000);
     // 查看是否有未完成任务
 
-    IsTaskComplete(obj.title);
+    IsTaskComplete(obj.title,elements[i].text());
+
     sleep(3000);
     // 这里很关键，需要重新获取元素刷新的作用，取最新的元素
     getTaskList();
-
     return;
 
 
@@ -500,10 +507,19 @@ function IsRedDian() {
 }
 
 // 是否任务完成了获取学时
-function IsTaskComplete(taskTitle) {
+function IsTaskComplete(taskTitle,textStr) {
 
+  switch (textStr) {
   // 等待"任务类型：学习计划"出现
-  processElements(taskTitle);
+  case "任务类型：学习计划":
+    console.log("任务类型：学习计划");
+    processElements(taskTitle);
+    break;
+  case "任务类型：考试":
+    DoExercisesV2(taskTitle);
+    console.log("任务类型：考试");
+    break;
+  }
 
 
 }
@@ -913,6 +929,9 @@ function DoExercises(obj) {
           if (colorArr && Object.keys(colorArr).length > 0) {
 
             for (let i = 0; i < ele[is].daAn.length; i++) {
+              if(!colorArr[ele[is].daAn[i]]){
+                continue;
+              }
 
               if (colorArr[ele[is].daAn[i]].isSelect) {
                 console.log("已经选择了:", ele[is].daAn[i], "不用点击了");
@@ -1027,7 +1046,187 @@ function DoExercises(obj) {
   }
 }
 
+function DoExercisesV2(taskTitle) {
+  id("com.alibaba.android.rimet:id/more_text").waitFor();
 
+  sleep(7000);
+
+  let res = chain.sleep(2000).findtextMatches(/(继续考试|开始考试|重新考试|再考一次)/);
+  if (!res) {
+    BackOut();
+    return
+  }
+
+  let resText = res.text();
+  if (resText== "重新考试" || resText == "再考一次" ) {
+    click("回顾答题");
+    sleep(4000)
+    let ele = text("正确答案:").find().map((item, index) => {
+      let cClickLen = 1;
+      if (resText == "再考一次") {
+          cClickLen = 2;
+      }
+      let daAn = item.parent().child(item.parent().childCount() - cClickLen).text().split("、").map(item => item.toLowerCase());
+      console.log(daAn);
+      return {
+        daAn: daAn,
+        itme: item,
+      };
+    })
+    // 找到正确答案回到上一级答题
+    BackOut();
+    sleep(2000);
+    if (ele.length <= 0) {
+      console.log("未找到答案");
+      BackOut();
+      sleep(2000);
+      return;
+    }
+    // 找到的情况
+    if (ele.length > 0) {
+      click(resText);
+
+      sleep(3000);
+      let elements = text(resText).clickable(true).find();
+      console.log("elements", elements.length);
+      let minYElement = elements.reduce((min, current) => {
+        return (current.bounds().top < min.bounds().top) ? current : min;
+      }, elements[0]);
+      if (minYElement) {
+        console.log(minYElement.text(), minYElement.bounds().centerX(), minYElement.bounds().centerY());
+        minYElement.click();
+        sleep(3000);
+        click("开始考试");
+        sleep(2000);
+        // 黑色背景
+        click(width / 2, height / 2);
+        let is = 0;
+        while (xia = chain.sleep(2000).findtextMatches(/下一题|交卷/)) {
+          textMatches(/单选题|多选题/).waitFor();
+          sleep(1000);
+          let isDan = textMatches(/单选题|多选题/).findOne(2000);
+          console.log(isDan.text(), ",第：", is + 1, "题,", ele[is].daAn);
+          let colorArr = GetIsSelectXuZhe();
+
+          if (colorArr && Object.keys(colorArr).length > 0) {
+
+            for (let i = 0; i < ele[is].daAn.length; i++) {
+
+              if(!colorArr[ele[is].daAn[i]]){
+                continue;
+              }
+
+              if (colorArr[ele[is].daAn[i]].isSelect) {
+                console.log("已经选择了:", ele[is].daAn[i], "不用点击了");
+                continue;
+              }
+              let point = {};
+              point.x = colorArr[ele[is].daAn[i]].obj.bounds().centerX();
+              point.y = colorArr[ele[is].daAn[i]].obj.bounds().centerY();
+
+              if (point) {
+                console.log("选择了", ele[is].daAn[i], "点击:", point.x, point.y);
+                click(point.x, point.y);
+                sleep(2000);
+              }
+            }
+
+
+          } else {
+            log("未找到题目");
+          }
+
+
+
+
+          chain.sleep(1000).clickB(xia);
+
+
+
+          if (xia.text() == "交卷") {
+            sleep(3000);
+            click("确定")
+            sleep(4000);
+          
+            BackOut();
+            break;
+          }
+          is++;
+        }
+
+      }
+
+    }
+
+
+    return;
+  }
+  // 上面是重新测验情况
+  console.log("点击考试:", res.text(), res.bounds().centerX(), res.bounds().centerY());
+  if (clickB(res)) {
+    sleep(2000);
+    // 黑色背景
+    click(width / 2, height / 2);
+    let randArr = ['a', 'b', 'c', 'd'];
+    let is = 0;
+    while (xia = chain.sleep(2000).findtextMatches(/下一题|交卷/)) {
+      textMatches(/单选题|多选题/).waitFor();
+      sleep(1000);
+      let isDan = textMatches(/单选题|多选题/).findOne(2000);
+
+      let randomElement = randArr[Math.floor(Math.random() * randArr.length)];
+
+
+      let colorArr = GetIsSelectXuZhe();
+      if (colorArr && Object.keys(colorArr).length > 0) {
+
+        if (colorArr[randomElement].isSelect) {
+          console.log("已经选择了:", randomElement, "不用点击了");
+          continue;
+        }
+        let point = {};
+
+        point.x = colorArr[randomElement].obj.bounds().centerX();
+        point.y = colorArr[randomElement].obj.bounds().centerY();
+        console.log("随机点击:", randomElement, point.x, point.y);
+
+        if (point) {
+          click(point.x, point.y);
+          sleep(1000);
+        }
+
+
+
+      } else {
+        log("未找到题目");
+      }
+
+
+      chain.sleep(1000).clickB(xia);
+      sleep(1000);
+
+      if (xia.text() == "交卷") {
+        sleep(3000);
+        click("确定")
+        sleep(3000);
+        // 重新考试
+        DoExercisesV2(taskTitle);
+
+        return;
+      }
+      is++;
+
+    }
+
+    console.log("点击考试成功");
+
+    sleep(3000);
+    BackOut();
+  } else {
+    console.log("点击考试失败");
+    BackOut();
+  }
+}
 
 // -----------------------
 function BackOut() {
@@ -1199,16 +1398,17 @@ function clickConfirmIfPresent() {
 
 
 function GetIsSelectXuZhe() {
-  let ress = textMatches(/A|B|C|D|E|F/).find();
+  let ress = textMatches(/A|B|C|D|E|F|G/).find();
   if (ress.length == 0) {
     return null;
   }
   let colors = {};
 
   for (let i = 0; i < ress.length; ++i) {
+    console.log(ress[i].text().toLowerCase(), ress[i].bounds().left);
     if (ress[i].bounds().left > 0 && ress[i].bounds().left < width / 2) {
 
-      log(ress[i].text().toLowerCase(), ress[i].bounds().centerX(), ress[i].bounds().centerY());
+      // log(ress[i].text().toLowerCase(), ress[i].bounds().centerX(), ress[i].bounds().centerY());
 
       // 获取屏幕截图    
       let bools = getColorBool(ress[i]);
@@ -1217,7 +1417,6 @@ function GetIsSelectXuZhe() {
         isSelect: bools,
         obj: ress[i],
       }
-
 
     }
   }
