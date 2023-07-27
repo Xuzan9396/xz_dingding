@@ -997,7 +997,9 @@ function DoExercises(obj) {
       let colorArr = GetIsSelectXuZhe();
       log(colorArr);
       if (colorArr && Object.keys(colorArr).length > 0) {
-
+        if(!colorArr[randomElement]){
+          continue;
+       }
 
         if (colorArr[randomElement].isSelect) {
           console.log("已经选择了:", randomElement, "不用点击了");
@@ -1179,7 +1181,9 @@ function DoExercisesV2(taskTitle) {
 
       let colorArr = GetIsSelectXuZhe();
       if (colorArr && Object.keys(colorArr).length > 0) {
-
+        if(!colorArr[randomElement]){
+            continue;
+        }
         if (colorArr[randomElement].isSelect) {
           console.log("已经选择了:", randomElement, "不用点击了");
           continue;
