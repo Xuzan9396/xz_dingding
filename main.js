@@ -884,7 +884,17 @@ function DoExercises(obj) {
     click("回顾答题");
     sleep(4000)
     let ele = text("正确答案:").find().map((item, index) => {
-      let daAn = item.parent().child(item.parent().childCount() - 1).text().split("、").map(item => item.toLowerCase());
+      let daAn = item.parent().child(item.parent().childCount() - 1).text().split("、").map(item => {
+        let lowered = item.toLowerCase();
+        if (lowered === '正确') {
+          // 针对选择题的情况
+            return 'a';
+        } else if (lowered === '错误') {
+            return 'b';
+        } else {
+            return lowered;
+        }
+    });
       console.log(daAn);
       return {
         daAn: daAn,
@@ -920,9 +930,9 @@ function DoExercises(obj) {
         click(width / 2, height / 2);
         let is = 0;
         while (xia = chain.sleep(2000).findtextMatches(/下一题|交卷/)) {
-          textMatches(/单选题|多选题/).waitFor();
+          textMatches(/单选题|多选题|判断题/).waitFor();
           sleep(1000);
-          let isDan = textMatches(/单选题|多选题/).findOne(2000);
+          let isDan = textMatches(/单选题|多选题|判断题/).findOne(2000);
           console.log(isDan.text(), ",第：", is + 1, "题,", ele[is].daAn);
           let colorArr = GetIsSelectXuZhe();
 
@@ -937,13 +947,12 @@ function DoExercises(obj) {
                 console.log("已经选择了:", ele[is].daAn[i], "不用点击了");
                 continue;
               }
-              // if (isDan.text() === "单选题"){
               let point = {};
               point.x = colorArr[ele[is].daAn[i]].obj.bounds().centerX();
               point.y = colorArr[ele[is].daAn[i]].obj.bounds().centerY();
 
               if (point) {
-                console.log("选择了", ele[is].daAn[i], "点击:", point.x, point.y);
+                console.log("第:", is + 1, "题", ele[is].daAn[i], "点击:", point.x, point.y);
                 click(point.x, point.y);
                 sleep(2000);
               }
@@ -987,15 +996,14 @@ function DoExercises(obj) {
     let randArr = ['a', 'b', 'c', 'd'];
     let is = 0;
     while (xia = chain.sleep(2000).findtextMatches(/下一题|交卷/)) {
-      textMatches(/单选题|多选题/).waitFor();
+      textMatches(/单选题|多选题|判断题/).waitFor();
       sleep(1000);
-      let isDan = textMatches(/单选题|多选题/).findOne(2000);
+      let isDan = textMatches(/单选题|多选题|判断题/).findOne(2000);
 
       let randomElement = randArr[Math.floor(Math.random() * randArr.length)];
 
 
       let colorArr = GetIsSelectXuZhe();
-      log(colorArr);
       if (colorArr && Object.keys(colorArr).length > 0) {
         if(!colorArr[randomElement]){
           continue;
@@ -1005,7 +1013,6 @@ function DoExercises(obj) {
           console.log("已经选择了:", randomElement, "不用点击了");
           continue;
         }
-        // if (isDan.text() === "单选题"){
         let point = {};
 
         point.x = colorArr[randomElement].obj.bounds().centerX();
@@ -1068,7 +1075,16 @@ function DoExercisesV2(taskTitle) {
       if (resText == "再考一次") {
           cClickLen = 2;
       }
-      let daAn = item.parent().child(item.parent().childCount() - cClickLen).text().split("、").map(item => item.toLowerCase());
+      let daAn = item.parent().child(item.parent().childCount() - cClickLen).text().split("、").map(item => {
+        let lowered = item.toLowerCase();
+        if (lowered === '正确') {
+            return 'a';
+        } else if (lowered === '错误') {
+            return 'b';
+        } else {
+            return lowered;
+        }
+    });
       console.log(daAn);
       return {
         daAn: daAn,
@@ -1104,9 +1120,9 @@ function DoExercisesV2(taskTitle) {
         click(width / 2, height / 2);
         let is = 0;
         while (xia = chain.sleep(2000).findtextMatches(/下一题|交卷/)) {
-          textMatches(/单选题|多选题/).waitFor();
+          textMatches(/单选题|多选题|判断题/).waitFor();
           sleep(1000);
-          let isDan = textMatches(/单选题|多选题/).findOne(2000);
+          let isDan = textMatches(/单选题|多选题|判断题/).findOne(2000);
           console.log(isDan.text(), ",第：", is + 1, "题,", ele[is].daAn);
           let colorArr = GetIsSelectXuZhe();
 
@@ -1172,9 +1188,9 @@ function DoExercisesV2(taskTitle) {
     let randArr = ['a', 'b', 'c', 'd'];
     let is = 0;
     while (xia = chain.sleep(2000).findtextMatches(/下一题|交卷/)) {
-      textMatches(/单选题|多选题/).waitFor();
+      textMatches(/单选题|多选题|判断题/).waitFor();
       sleep(1000);
-      let isDan = textMatches(/单选题|多选题/).findOne(2000);
+      let isDan = textMatches(/单选题|多选题|判断题/).findOne(2000);
 
       let randomElement = randArr[Math.floor(Math.random() * randArr.length)];
 
@@ -1409,7 +1425,7 @@ function GetIsSelectXuZhe() {
   let colors = {};
 
   for (let i = 0; i < ress.length; ++i) {
-    console.log(ress[i].text().toLowerCase(), ress[i].bounds().left);
+    // console.log(ress[i].text().toLowerCase(), ress[i].bounds().left);
     if (ress[i].bounds().left > 0 && ress[i].bounds().left < width / 2) {
 
       // log(ress[i].text().toLowerCase(), ress[i].bounds().centerX(), ress[i].bounds().centerY());
