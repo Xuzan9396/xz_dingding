@@ -380,7 +380,9 @@ function Run() {
   // var packageName = "com.alibaba.android.rimet";
   // console.log("打开 " + packageName)
   // app.launch(packageName);
-  // DoExercisesV2("考试");
+  // 开始测验和重新测验那个页面
+  // DoExercises({});
+  // // DoExercisesV2("考试");
   // // getTaskList();
   // return 
 
@@ -908,7 +910,7 @@ function WatchVideo(obj, targetX, targetY) {
 // 点击考试
 function DoExercises(obj) {
 
-  // 
+  // 1112
   let res = chain.sleep(2000).findtextMatches(/(继续测验|开始测验|重新测验|再考一次)/);
   if (!res) {
     BackOut();
@@ -920,24 +922,38 @@ function DoExercises(obj) {
   if (resText == "重新测验" || resText == "再考一次") {
     click("回顾答题");
     sleep(4000)
+
     let ele = text("正确答案:").find().map((item, index) => {
-      let daAn = item.parent().child(item.parent().childCount() - 1).text().split("、").map(item => {
-        let lowered = item.toLowerCase();
-        if (lowered === '正确') {
-          // 针对选择题的情况
-            return 'a';
-        } else if (lowered === '错误') {
-            return 'b';
-        } else {
-            return lowered;
-        }
-    });
-      console.log(daAn);
+      let daAn;
+      let parent = item.parent();
+      let children = parent.children();
+      let targetChildIndex = -1;
+      // v0.0.9 改，正确答案下一个元素就是答案
+      for (let i = 0; i < children.length; i++) {
+          if (children[i].text() === "正确答案:") {
+              targetChildIndex = i + 1;
+              break;
+          }
+      }
+      if (targetChildIndex >= 0 && targetChildIndex < children.length) {
+          daAn = children[targetChildIndex].text().split("、").map(ite => {
+              let lowered = ite.toLowerCase();
+              if (lowered === '正确') {
+                  return 'a';
+              } else if (lowered === '错误') {
+                  return 'b';
+              } else {
+                  return lowered;
+              }
+          });
+      }
+      console.log('第:', index + 1, '题的答案为:', daAn);
       return {
-        daAn: daAn,
-        itme: item,
+          daAn: daAn,
+          item: item,
       };
-    })
+  });
+  
     // 找到正确答案回到上一级答题
     BackOut();
     sleep(2000);
@@ -1110,27 +1126,60 @@ function DoExercisesV2(taskTitle) {
   if (resText== "重新考试" || resText == "再考一次" ) {
     click("回顾答题");
     sleep(4000)
+    // let ele = text("正确答案:").find().map((item, index) => {
+    //   let cClickLen = 1;
+    //   if (resText == "再考一次") {
+    //       cClickLen = 2;
+    //   }
+    //   let daAn = item.parent().child(item.parent().childCount() - cClickLen).text().split("、").map(item => {
+    //     let lowered = item.toLowerCase();
+    //     if (lowered === '正确') {
+    //         return 'a';
+    //     } else if (lowered === '错误') {
+    //         return 'b';
+    //     } else {
+    //         return lowered;
+    //     }
+    // });
+    //   console.log(daAn);
+    //   return {
+    //     daAn: daAn,
+    //     itme: item,
+    //   };
+    // })
+    // v0.0.9 改正确答案下一个元素就是答案
     let ele = text("正确答案:").find().map((item, index) => {
-      let cClickLen = 1;
-      if (resText == "再考一次") {
-          cClickLen = 2;
+      let daAn;
+      let parent = item.parent();
+      let children = parent.children();
+      let targetChildIndex = -1;
+      // v0.0.9 改，正确答案下一个元素就是答案
+      for (let i = 0; i < children.length; i++) {
+          if (children[i].text() === "正确答案:") {
+              targetChildIndex = i + 1;
+              break;
+          }
       }
-      let daAn = item.parent().child(item.parent().childCount() - cClickLen).text().split("、").map(item => {
-        let lowered = item.toLowerCase();
-        if (lowered === '正确') {
-            return 'a';
-        } else if (lowered === '错误') {
-            return 'b';
-        } else {
-            return lowered;
-        }
-    });
-      console.log(daAn);
+      if (targetChildIndex >= 0 && targetChildIndex < children.length) {
+          daAn = children[targetChildIndex].text().split("、").map(ite => {
+              let lowered = ite.toLowerCase();
+              if (lowered === '正确') {
+                  return 'a';
+              } else if (lowered === '错误') {
+                  return 'b';
+              } else {
+                  return lowered;
+              }
+          });
+      }
+      console.log('第:', index + 1, '题的答案为:', daAn);
       return {
-        daAn: daAn,
-        itme: item,
+          daAn: daAn,
+          item: item,
       };
-    })
+  });
+
+
     // 找到正确答案回到上一级答题
     BackOut();
     sleep(2000);
