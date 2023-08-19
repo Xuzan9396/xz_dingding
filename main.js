@@ -682,9 +682,11 @@ function processElements(taskTitle) {
               sleep(3000);
               return;
             }
-
+            console.log("点击考试坐标",targetX, targetY);
             click(targetX, targetY);
             sleep(3000);
+
+            // 点击开始考试
             DoExercises(obj);
             sleep(2000);
 
@@ -692,10 +694,7 @@ function processElements(taskTitle) {
             return;
         }
 
-        // 全部看完返回上级
-        // if (i == elements.length - 1) {
-
-        // }
+    
       } else {
         console.log("未找到视频，跳过");
         continue;
@@ -737,12 +736,28 @@ function getSwipeElement(obj) {
         console.log("处理标题相同的");
         let targetElements = className("android.view.View").text(obj.title).find();
         if (targetElements.length >= obj.rawIndex) {
-
+           console.log("找到了标题相同的:", obj.title, obj.rawIndex);
            targetElement = targetElements[obj.rawIndex];
           // 在这里使用 targetObj
         } 
       }else{
-        targetElement = className("android.view.View").text(obj.title).findOne(3000);
+        // targetElement = className("android.view.View").text(obj.title).findOne(3000);
+        // 上面这个该一个有点问题，如果一个页面有多个标签和列表标题重复的情况就有问题了，上面取一个改成取多个，因为同一个不是一个列表的有可能有多个相同的标题 v0.0.8版本
+        sleep(1000)
+        let targetElements = className("android.view.View").text(obj.title).find()
+        // 如果没有找到任何元素，打印提示并退出
+        if (targetElements.empty()) {
+          console.log("没有找到任何元素，退出");
+          continue;
+        }
+        // 按照元素的y坐标进行排序，最后一个元素的y坐标最大
+        targetElements.sort((a, b) => {
+          return a.bounds().centerY() - b.bounds().centerY();
+        });
+      
+        // 点击y坐标最大的元素
+        targetElement = targetElements[targetElements.length - 1]
+        sleep(1000);
 
       }
 
@@ -758,8 +773,27 @@ function getSwipeElement(obj) {
       swipeCount++;
     }
   } else {
+
+   
     // 重新获取目标元素的位置
-    targetElement = className("android.view.View").text(obj.title).findOne(3000);
+    // targetElement = className("android.view.View").text(obj.title).findOne(3000);
+
+     // v0.0.8 版本，一个页面修改标签重复的问题,改成取最下面的一个
+    sleep(1000)
+    let targetElements = className("android.view.View").text(obj.title).find()
+    // 如果没有找到任何元素，打印提示并退出
+    if (targetElements.empty()) {
+      console.log("没有找到任何元素，退出");
+      return [null, null, null];
+    }
+    // 按照元素的y坐标进行排序，最后一个元素的y坐标最大
+    targetElements.sort((a, b) => {
+      return a.bounds().centerY() - b.bounds().centerY();
+    });
+  
+    // 点击y坐标最大的元素
+    targetElement = targetElements[targetElements.length - 1]
+
     bounds = targetElement.bounds();
     targetX = bounds.centerX();
     targetY = bounds.centerY();
@@ -874,13 +908,16 @@ function WatchVideo(obj, targetX, targetY) {
 // 点击考试
 function DoExercises(obj) {
 
-  let res = chain.sleep(2000).findtextMatches(/(继续测验|开始测验|重新测验)/);
+  // 
+  let res = chain.sleep(2000).findtextMatches(/(继续测验|开始测验|重新测验|再考一次)/);
   if (!res) {
     BackOut();
     return
   }
 
-  if (res.text() == "重新测验") {
+
+  resText = res.text();
+  if (resText == "重新测验" || resText == "再考一次") {
     click("回顾答题");
     sleep(4000)
     let ele = text("正确答案:").find().map((item, index) => {
@@ -912,10 +949,13 @@ function DoExercises(obj) {
     }
     // 找到的情况
     if (ele.length > 0) {
-      click("重新测验");
+      // click("重新测验");
+      // v0.0.8 改 除了重新测验 还有再次考试
+      click( resText );
+
 
       sleep(3000);
-      let elements = text("重新测验").clickable(true).find();
+      let elements = text(resText).clickable(true).find();
       console.log("elements", elements.length);
       let minYElement = elements.reduce((min, current) => {
         return (current.bounds().top < min.bounds().top) ? current : min;
