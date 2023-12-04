@@ -205,7 +205,7 @@ ui.update.on("click", function () {
     let filePath = files.path(`./tmp/${fileName}`);
     // https://github.blindfirefly.top/https://github.com/Xuzan9396/xz_dingding/releases/download/v0.0.1/dingding_v0.0.1.zip
     // https://ghproxy.com/https://github.com/Xuzan9396/xz_dingding/releases/download/v0.0.1/xz_dingding_v0.0.1.zip
-    let fileResp = http.get(`https://ghproxy.com/https://github.com/Xuzan9396/xz_dingding/releases/download/${newTagName}/${fileName}`);
+    let fileResp = http.get(`https://github.com/Xuzan9396/xz_dingding/releases/download/${newTagName}/${fileName}`);
     if (fileResp.statusCode != 200) {
       console(`下载${fileName}失败: ` + fileResp.statusCode + " " + fileResp.statusMessage);
       beforeReturn();
@@ -491,7 +491,6 @@ function IsRedDian() {
         // 如果不是 "红点"，打印信息并返回 false
         console.log("下一个同级节点不是红点，它的 id 是 " + id);
         return false;
-        return true
       }
       if (child.text() === "待办") {
         found = true;
@@ -623,6 +622,8 @@ function getElementsData() {
   let eLen = elements.length;
 
   console.log("视频数量.length:%d", elements.length); // 视频数量
+
+
   // 处理名字相同的视频
   if(elements.length > 0){
     let titleIndices = {};
@@ -632,6 +633,7 @@ function getElementsData() {
             titleIndices[obj.title] = obj.rawIndex;
         } else {
             obj.rawIndex = ++titleIndices[obj.title];
+            console.log("处理标题相同的:%s,重复序号:", obj.title,obj.rawIndex);
         }
     }
     // elements = elements.filter(el => el !== undefined);
@@ -639,7 +641,19 @@ function getElementsData() {
       return obj.finish !== 1;
     });
 
+
+      // 测试
+  console.log("开始")
+  for (let i = 0; i < elements.length; i++) {
+    let obj = elements[i];
+    if (obj.finish == 0) {
+      console.log("第", i + 1, "视频,title: ", obj.title, "minutes: ", obj.minutes, "percentage: ", obj.percentage, "text", obj.element.text(), "bottomY", obj.element.bounds().bottom,"rawIndex",obj.rawIndex);
+    }
   }
+  console.log("结束")
+
+  }
+
   return [elements, eLen];
 }
 
@@ -648,7 +662,7 @@ function getElementsData() {
 // 列表循环
 function processElements(taskTitle) {
   console.log("开始看视频和做题！！");
-  //  视频数量
+  //  获取视频数量,获取的是未完成的视频数量
   let [elements, maxSwipeTimes] = getElementsData();
   console.log("最大滑动次数:", maxSwipeTimes); // 视频数量
   // 开始循环点击视频和题目
@@ -657,9 +671,8 @@ function processElements(taskTitle) {
     // gxz 改
     if (obj) {
       obj.maxSwipeTimes = maxSwipeTimes;
-      console.log("第", i + 1, "视频,title: ", obj.title, "minutes: ", obj.minutes, "percentage: ", obj.percentage, "text", obj.element.text(), "bottomY", obj.element.bounds().bottom);
+      console.log("第第", i + 1, "视频,title: ", obj.title, "minutes: ", obj.minutes, "percentage: ", obj.percentage, "text", obj.element.text(), "bottomY", obj.element.bounds().bottom,"rawIndex",obj.rawIndex);
       let [targetElement, targetX, targetY] = getSwipeElement(obj);
-
 
       // 如果找到目标元素，进行点击操作
       if (targetElement) {
@@ -733,7 +746,7 @@ function getSwipeElement(obj) {
 
 
       // 重新获取目标元素的位置
-      if(obj.rawIndex > 0){
+      if(obj.rawIndex >= 0){
         // 处理标题相同的
         console.log("处理标题相同的");
         let targetElements = className("android.view.View").text(obj.title).find();
